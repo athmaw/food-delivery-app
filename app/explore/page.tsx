@@ -2,21 +2,33 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, MapPin, ShoppingCart, Star, Clock, Heart, ChevronLeft, ChevronRight, Grid3X3, List, X, ChevronDown } from "lucide-react";
+import { Search, MapPin, Star, Clock, Heart, ChevronLeft, ChevronRight, Grid3X3, List, X, ChevronDown } from "lucide-react";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
 
 // Categories data
 const categories = [
-  { id: "all", label: "All", emoji: "🍽️", count: 42 },
-  { id: "pizza", label: "Pizza", emoji: "🍕", count: 8 },
-  { id: "burgers", label: "Burgers", emoji: "🍔", count: 6 },
-  { id: "coffee", label: "Coffee", emoji: "☕", count: 5 },
-  { id: "desserts", label: "Desserts", emoji: "🍰", count: 7 },
-  { id: "noodles", label: "Noodles", emoji: "🍜", count: 6 },
-  { id: "healthy", label: "Healthy", emoji: "🥗", count: 5 },
-  { id: "sushi", label: "Sushi", emoji: "🍣", count: 5 },
+  { id: "all", label: "All", emoji: "🍽️" },
+  { id: "pizza", label: "Pizza", emoji: "🍕" },
+  { id: "burgers", label: "Burgers", emoji: "🍔" },
+  { id: "coffee", label: "Coffee", emoji: "☕" },
+  { id: "desserts", label: "Desserts", emoji: "🍰" },
+  { id: "noodles", label: "Noodles", emoji: "🍜" },
+  { id: "healthy", label: "Healthy", emoji: "🥗" },
+  { id: "sushi", label: "Sushi", emoji: "🍣" },
 ];
+
+const getCategoryCount = (categoryId: string) => {
+  if (categoryId === "all") {
+    return restaurants.length;
+  }
+
+  return restaurants.filter((restaurant) =>
+    restaurant.tags.some((tag) =>
+      tag.toLowerCase().includes(categoryId.toLowerCase())
+    )
+  ).length;
+};
 
 // Sort options
 const sortOptions = [
@@ -383,13 +395,6 @@ export default function ExplorePage() {
             </nav>
 
             <div className="flex items-center gap-3">
-              <Link href="/cart" className="relative flex items-center gap-1 text-primary text-sm">
-                <ShoppingCart className="w-5 h-5" />
-                <span className="hidden sm:inline">Cart</span>
-                <span className="absolute -top-2 -right-2 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">
-                  3
-                </span>
-              </Link>
               {!user ? (
                 <>
                   <Link href="/signup" className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
@@ -455,7 +460,7 @@ export default function ExplorePage() {
                         <span>{category.label}</span>
                       </span>
                       <span className={activeCategory === category.id ? "text-white/80" : "text-primary"}>
-                        {category.count}
+                        {getCategoryCount(category.id)}
                       </span>
                     </button>
                   ))}
