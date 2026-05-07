@@ -278,6 +278,16 @@ export default function ExplorePage() {
     setSearchQuery("");
   };
 
+  // Filter restaurants based on active category
+  const filteredRestaurants = restaurants.filter((restaurant) => {
+    if (activeCategory === "all") return true;
+
+    // Check if restaurant tags include the selected category
+    return restaurant.tags.some((tag) =>
+      tag.toLowerCase().includes(activeCategory.toLowerCase())
+    );
+  });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -515,7 +525,7 @@ export default function ExplorePage() {
             {/* Results Header */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted">
-                Showing <span className="font-semibold text-foreground">{restaurants.length}</span> restaurants
+                Showing <span className="font-semibold text-foreground">{filteredRestaurants.length}</span> restaurants
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -555,7 +565,7 @@ export default function ExplorePage() {
 
             {/* Restaurant Grid */}
             <div className={`grid gap-4 mb-8 ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-1"}`}>
-              {restaurants.map((restaurant) => (
+              {filteredRestaurants.map((restaurant) => (
                 <div
                   key={restaurant.id}
                   className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-md hover:border-primary/30 transition-all cursor-pointer"
