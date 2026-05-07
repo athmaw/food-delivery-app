@@ -278,14 +278,81 @@ export default function ExplorePage() {
     setSearchQuery("");
   };
 
-  // Filter restaurants based on active category
+  // Filter restaurants based on active category and filters
   const filteredRestaurants = restaurants.filter((restaurant) => {
-    if (activeCategory === "all") return true;
+    // Category filter
+    if (activeCategory !== "all") {
+      const matchesCategory = restaurant.tags.some((tag) =>
+        tag.toLowerCase().includes(activeCategory.toLowerCase())
+      );
+      if (!matchesCategory) return false;
+    }
 
-    // Check if restaurant tags include the selected category
-    return restaurant.tags.some((tag) =>
-      tag.toLowerCase().includes(activeCategory.toLowerCase())
-    );
+    // Min Rating filter
+    if (minRating !== "all") {
+      const minRatingValue = parseFloat(minRating.replace("+", ""));
+      if (restaurant.rating < minRatingValue) return false;
+    }
+
+    // Delivery Time filter
+    if (deliveryTime !== "any") {
+      const maxTime = parseInt(deliveryTime);
+      const restaurantTime = parseInt(restaurant.deliveryTime.split(" ")[0]);
+      if (restaurantTime > maxTime) return false;
+    }
+
+    // Price Range filter
+    if (priceRange !== "all") {
+      if (restaurant.priceRange !== priceRange) return false;
+    }
+
+    // Preferences filters
+    if (freeDelivery && !restaurant.badge?.toLowerCase().includes("free")) return false;
+    if (newRestaurants && !restaurant.badge?.toLowerCase().includes("new")) return false;
+    if (promotionsOnly && !restaurant.badge) return false;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const matchesName = restaurant.name.toLowerCase().includes(query);
+      const matchesTags = restaurant.tags.some(tag => tag.toLowerCase().includes(query));
+      if (!matchesName && !matchesTags) return false;
+    }
+
+    return true;
+  });
+
+  // Sort filtered restaurants based on active sort option
+  const sortedRestaurants = [...filteredRestaurants].sort((a, b) => {
+    switch (activeSort) {
+      case "highest-rated":
+        return b.rating - a.rating;
+      
+      case "fastest-delivery":
+        // Parse delivery time (e.g., "5 min" -> 5)
+        const timeA = parseInt(a.deliveryTime.split(" ")[0]);
+        const timeB = parseInt(b.deliveryTime.split(" ")[0]);
+        return timeA - timeB;
+      
+      case "price-low-high":
+        // Map price ranges to numbers ($ -> 1, $$ -> 2, $$$ -> 3)
+        const priceValue = (price: string) => {
+          if (price === "$") return 1;
+          if (price === "$$") return 2;
+          if (price === "$$$") return 3;
+          return 1;
+        };
+        return priceValue(a.priceRange) - priceValue(b.priceRange);
+      
+      case "most-popular":
+        // Use rating as proxy for popularity
+        return b.rating - a.rating;
+      
+      case "recommended":
+      default:
+        // Keep original order for recommended
+        return 0;
+    }
   });
 
   return (
@@ -525,7 +592,7 @@ export default function ExplorePage() {
             {/* Results Header */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted">
-                Showing <span className="font-semibold text-foreground">{filteredRestaurants.length}</span> restaurants
+                Showing <span className="font-semibold text-foreground">{sortedRestaurants.length}</span> restaurants
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -565,7 +632,7 @@ export default function ExplorePage() {
 
             {/* Restaurant Grid */}
             <div className={`grid gap-4 mb-8 ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-1"}`}>
-              {filteredRestaurants.map((restaurant) => (
+              {sortedRestaurants.map((restaurant) => (
                 <div
                   key={restaurant.id}
                   className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-md hover:border-primary/30 transition-all cursor-pointer"
