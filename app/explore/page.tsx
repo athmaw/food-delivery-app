@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, MapPin, ShoppingCart, Star, Clock, Heart, ChevronLeft, ChevronRight, Grid3X3, List, X } from "lucide-react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { Search, MapPin, ShoppingCart, Star, Clock, Heart, ChevronLeft, ChevronRight, Grid3X3, List, X, ChevronDown } from "lucide-react";
+import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
 
 // Categories data
@@ -180,6 +180,61 @@ const popularDishes = [
   { id: 5, name: "Salmon Sushi Set", restaurant: "Sushi World", deliveryTime: "15 min", price: 18.50, bgColor: "bg-pink-100", emoji: "🍣" },
 ];
 
+function ExploreUserDropdown({ user }: { user: User }) {
+  const [open, setOpen] = useState(false);
+
+  // Extract first name from displayName or email
+  const getFirstName = () => {
+    if (user.displayName) {
+      return user.displayName.split(" ")[0];
+    }
+    if (user.email) {
+      return user.email.split("@")[0];
+    }
+    return "User";
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      {/* Button */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+      >
+        {getFirstName()}
+        <ChevronDown className="w-4 h-4" />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute right-0 mt-2 w-40 bg-white border border-border rounded-lg shadow-lg overflow-hidden z-50">
+          
+          <Link
+            href="/profile"
+            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 block"
+            onClick={() => setOpen(false)}
+          >
+            Profile
+          </Link>
+
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ExplorePage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeSort, setActiveSort] = useState("recommended");
@@ -203,16 +258,6 @@ export default function ExplorePage() {
 
     return () => unsubscribe();
   }, []);
-
-  const getFirstName = () => {
-    if (user?.displayName) {
-      return user.displayName.split(" ")[0];
-    }
-    if (user?.email) {
-      return user.email.split("@")[0];
-    }
-    return "User";
-  };
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
@@ -278,9 +323,7 @@ export default function ExplorePage() {
                   </Link>
                 </>
               ) : (
-                <button className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors">
-                  {getFirstName()}
-                </button>
+                <ExploreUserDropdown user={user} />
               )}
             </div>
           </div>

@@ -98,21 +98,23 @@ function UserDropdown({ user }: { user: User }) {
       {/* Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors"
       >
         {getFirstName()}
+        <ChevronDown className="w-4 h-4" />
       </button>
 
       {/* Dropdown */}
       {open && (
         <div className="absolute right-0 mt-2 w-40 bg-white border border-border rounded-lg shadow-lg overflow-hidden z-50">
           
-          <button
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+          <Link
+            href="/profile"
+            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 block"
             onClick={() => setOpen(false)}
           >
             Profile
-          </button>
+          </Link>
 
           <button
             className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
