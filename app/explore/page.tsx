@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, MapPin, ShoppingCart, Star, Clock, Heart, ChevronLeft, ChevronRight, Grid3X3, List, X } from "lucide-react";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/app/lib/firebase";
 
 // Categories data
 const categories = [
@@ -192,6 +194,25 @@ export default function ExplorePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([1, 9]);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const getFirstName = () => {
+    if (user?.displayName) {
+      return user.displayName.split(" ")[0];
+    }
+    if (user?.email) {
+      return user.email.split("@")[0];
+    }
+    return "User";
+  };
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
@@ -247,12 +268,20 @@ export default function ExplorePage() {
                   3
                 </span>
               </Link>
-              <Link href="/signup" className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
-                Sign Up
-              </Link>
-              <Link href="/login" className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-                Log In
-              </Link>
+              {!user ? (
+                <>
+                  <Link href="/signup" className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
+                    Sign Up
+                  </Link>
+                  <Link href="/login" className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                    Log In
+                  </Link>
+                </>
+              ) : (
+                <button className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors">
+                  {getFirstName()}
+                </button>
+              )}
             </div>
           </div>
         </div>
