@@ -38,7 +38,7 @@ export function TopDishesSection({ searchQuery }: Props) {
             <h3 className="text-sm mt-2">{dish.name}</h3>
             <p className="text-xs text-muted">{dish.restaurant}</p>
 
-            {/* PRICE ONLY (PLUS BUTTON REMOVED) */}
+            {/* PRICE */}
             <div className="mt-2">
               <span className="text-primary">${dish.price}</span>
             </div>

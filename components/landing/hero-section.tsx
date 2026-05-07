@@ -34,7 +34,7 @@ export function HeroSection({ searchQuery, setSearchQuery }: Props) {
             Your favourite food, delivered fresh and fast.
           </p>
 
-          {/* SEARCH BAR (BUTTON TRIGGERED) */}
+          {/* SEARCH BAR */}
           <div className="mt-8 flex items-center gap-2 max-w-md mx-auto md:mx-0">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
