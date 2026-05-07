@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 const categories = [
   { id: "all", label: "All", emoji: "🍽️" },
   { id: "pizza", label: "Pizza", emoji: "🍕" },
@@ -13,25 +11,33 @@ const categories = [
   { id: "sushi", label: "Sushi", emoji: "🍣" },
 ];
 
-export function CategoriesSection() {
-  const [activeCategory, setActiveCategory] = useState("all");
+type Props = {
+  activeCategory: string;
+  setActiveCategory: (value: string) => void;
+};
 
+export function CategoriesSection({
+  activeCategory,
+  setActiveCategory,
+}: Props) {
   return (
     <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-foreground">What are you craving?</h2>
-        <p className="text-sm text-muted mt-1">Browse by category and find your favourite</p>
+        <h2 className="text-xl font-semibold">What are you craving?</h2>
+        <p className="text-sm text-muted mt-1">
+          Browse by category and find your favourite
+        </p>
       </div>
 
-      <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex items-center gap-3 overflow-x-auto pb-2">
         {categories.map((category) => (
           <button
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               activeCategory === category.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-white border border-border text-foreground hover:border-primary/50"
+                ? "bg-primary text-white"
+                : "bg-white border border-border"
             }`}
           >
             <span>{category.emoji}</span>
