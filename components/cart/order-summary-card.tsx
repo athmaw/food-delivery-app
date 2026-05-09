@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "@/hooks/use-cart";
 import CheckoutModal from "../modals/checkout-modal";
+import { auth, db } from "@/app/lib/firebase"; // Added db for Firestore checks
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function OrderSummaryCard() {
   const { items, promo, applyPromoCode } = useCart();
@@ -12,20 +14,8 @@ export default function OrderSummaryCard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
   
-  // Persistence: Track codes used across different sessions
-  const [usedCodes, setUsedCodes] = useState<string[]>([]);
-
-  // Load history on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("order_history_promos");
-    if (saved) {
-      try {
-        setUsedCodes(JSON.parse(saved));
-      } catch (e) {
-        setUsedCodes([]);
-      }
-    }
-  }, []);
+  // State to track if the current logged-in user has used the code before
+  const [hasUserUsedCode, setHasUserUsedCode] = useState(false);
 
   const FREE_DELIVERY_THRESHOLD = 50.0;
 
@@ -49,24 +39,37 @@ export default function OrderSummaryCard() {
 
   const total = subtotal - discountAmount + deliveryFee + serviceFee;
 
-  const handleApplyPromo = () => {
+  const handleApplyPromo = async () => {
     setErrorMessage(null);
     const code = promoInput.trim().toUpperCase();
+    const user = auth.currentUser;
 
     if (!code) return;
 
-    // 1. Check if a code is already active in the current cart
     if (promo) {
-      setErrorMessage("A promo code is already applied to this order.");
+      setErrorMessage("A promo code is already applied.");
       setTimeout(() => setErrorMessage(null), 3000);
       return;
     }
 
-    // 2. Check if this code has been used in a previous completed checkout
-    if (usedCodes.includes(code)) {
-      setErrorMessage("You have already used this promo code.");
-      setTimeout(() => setErrorMessage(null), 3000);
-      return;
+    // NEW LOGIC: Check Firestore to see if THIS specific user has used THIS code
+    if (user) {
+      try {
+        const q = query(
+          collection(db, "orders"), 
+          where("userId", "==", user.uid),
+          where("promoCode", "==", code)
+        );
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          setErrorMessage("You have already used this promo code on a previous order.");
+          setTimeout(() => setErrorMessage(null), 3000);
+          return;
+        }
+      } catch (err) {
+        console.error("Error checking promo history:", err);
+      }
     }
 
     const success = applyPromoCode(code);
@@ -79,12 +82,6 @@ export default function OrderSummaryCard() {
   };
 
   const handleCheckoutClick = () => {
-    // If there is an active promo, save it to history so it can't be used again
-    if (promo) {
-      const updatedHistory = [...usedCodes, promo.code.toUpperCase()];
-      setUsedCodes(updatedHistory);
-      localStorage.setItem("order_history_promos", JSON.stringify(updatedHistory));
-    }
     setIsModalOpen(true);
   };
 
@@ -95,7 +92,7 @@ export default function OrderSummaryCard() {
           Order summary
         </h2>
 
-        {/* Progress */}
+        {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between items-end mb-1.5">
             <span className="text-[9px] text-gray-400 uppercase font-black tracking-widest">
@@ -116,7 +113,7 @@ export default function OrderSummaryCard() {
           </div>
         </div>
 
-        {/* Delivery Type */}
+        {/* Delivery Type Toggle */}
         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">
           Delivery Type
         </p>
@@ -211,7 +208,7 @@ export default function OrderSummaryCard() {
           </div>
         </div>
 
-        {/* Total Display */}
+        {/* Total */}
         <div className="flex justify-between items-center mb-6">
           <span className="text-xl font-bold">Total</span>
           <span className="text-2xl font-black text-primary">
@@ -219,7 +216,7 @@ export default function OrderSummaryCard() {
           </span>
         </div>
 
-        {/* Checkout Button */}
+        {/* Checkout */}
         <button
           onClick={handleCheckoutClick}
           disabled={items.length === 0}

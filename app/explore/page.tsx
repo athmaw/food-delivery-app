@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, MapPin, Star, Clock, Heart, ChevronLeft, ChevronRight, Grid3X3, List, X, ChevronDown } from "lucide-react";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
+import { useCart } from "@/hooks/use-cart";
 
 // Categories data
 const categories = [
@@ -195,7 +196,6 @@ const popularDishes = [
 function ExploreUserDropdown({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
 
-  // Extract first name from displayName or email
   const getFirstName = () => {
     if (user.displayName) {
       return user.displayName.split(" ")[0];
@@ -213,7 +213,6 @@ function ExploreUserDropdown({ user }: { user: User }) {
 
   return (
     <div className="relative">
-      {/* Button */}
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors"
@@ -222,10 +221,8 @@ function ExploreUserDropdown({ user }: { user: User }) {
         <ChevronDown className="w-4 h-4" />
       </button>
 
-      {/* Dropdown */}
       {open && (
         <div className="absolute right-0 mt-2 w-40 bg-white border border-border rounded-lg shadow-lg overflow-hidden z-50">
-          
           <Link
             href="/profile"
             className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 block"
@@ -240,7 +237,6 @@ function ExploreUserDropdown({ user }: { user: User }) {
           >
             Logout
           </button>
-
         </div>
       )}
     </div>
@@ -248,6 +244,7 @@ function ExploreUserDropdown({ user }: { user: User }) {
 }
 
 export default function ExplorePage() {
+  const { addItem } = useCart();
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeSort, setActiveSort] = useState("recommended");
   const [minRating, setMinRating] = useState("all");
@@ -290,9 +287,7 @@ export default function ExplorePage() {
     setSearchQuery("");
   };
 
-  // Filter restaurants based on active category and filters
   const filteredRestaurants = restaurants.filter((restaurant) => {
-    // Category filter
     if (activeCategory !== "all") {
       const matchesCategory = restaurant.tags.some((tag) =>
         tag.toLowerCase().includes(activeCategory.toLowerCase())
@@ -300,30 +295,25 @@ export default function ExplorePage() {
       if (!matchesCategory) return false;
     }
 
-    // Min Rating filter
     if (minRating !== "all") {
       const minRatingValue = parseFloat(minRating.replace("+", ""));
       if (restaurant.rating < minRatingValue) return false;
     }
 
-    // Delivery Time filter
     if (deliveryTime !== "any") {
       const maxTime = parseInt(deliveryTime);
       const restaurantTime = parseInt(restaurant.deliveryTime.split(" ")[0]);
       if (restaurantTime > maxTime) return false;
     }
 
-    // Price Range filter
     if (priceRange !== "all") {
       if (restaurant.priceRange !== priceRange) return false;
     }
 
-    // Preferences filters
     if (freeDelivery && !restaurant.badge?.toLowerCase().includes("free")) return false;
     if (newRestaurants && !restaurant.badge?.toLowerCase().includes("new")) return false;
     if (promotionsOnly && !restaurant.badge) return false;
 
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const matchesName = restaurant.name.toLowerCase().includes(query);
@@ -334,20 +324,17 @@ export default function ExplorePage() {
     return true;
   });
 
-  // Sort filtered restaurants based on active sort option
   const sortedRestaurants = [...filteredRestaurants].sort((a, b) => {
     switch (activeSort) {
       case "highest-rated":
         return b.rating - a.rating;
       
       case "fastest-delivery":
-        // Parse delivery time (e.g., "5 min" -> 5)
         const timeA = parseInt(a.deliveryTime.split(" ")[0]);
         const timeB = parseInt(b.deliveryTime.split(" ")[0]);
         return timeA - timeB;
       
       case "price-low-high":
-        // Map price ranges to numbers ($ -> 1, $$ -> 2, $$$ -> 3)
         const priceValue = (price: string) => {
           if (price === "$") return 1;
           if (price === "$$") return 2;
@@ -357,19 +344,16 @@ export default function ExplorePage() {
         return priceValue(a.priceRange) - priceValue(b.priceRange);
       
       case "most-popular":
-        // Use rating as proxy for popularity
         return b.rating - a.rating;
       
       case "recommended":
       default:
-        // Keep original order for recommended
         return 0;
     }
   });
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -412,15 +396,12 @@ export default function ExplorePage() {
         </div>
       </header>
 
-      {/* Page Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Explore Foods 🍽️</h1>
           <p className="text-muted mt-1">Discover restaurants and dishes near you.</p>
         </div>
 
-        {/* Search Bar */}
         <div className="flex items-center gap-3 mb-8">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
@@ -438,10 +419,8 @@ export default function ExplorePage() {
         </div>
 
         <div className="flex gap-8">
-          {/* Sidebar Filters */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-24 space-y-6">
-              {/* Category */}
               <div>
                 <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Category</h3>
                 <div className="space-y-1">
@@ -467,7 +446,6 @@ export default function ExplorePage() {
                 </div>
               </div>
 
-              {/* Sort By */}
               <div>
                 <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Sort By</h3>
                 <div className="space-y-1">
@@ -487,7 +465,6 @@ export default function ExplorePage() {
                 </div>
               </div>
 
-              {/* Min Rating */}
               <div>
                 <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Min. Rating</h3>
                 <div className="flex flex-wrap gap-2">
@@ -507,7 +484,6 @@ export default function ExplorePage() {
                 </div>
               </div>
 
-              {/* Delivery Time */}
               <div>
                 <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Delivery Time</h3>
                 <div className="flex flex-wrap gap-2">
@@ -532,7 +508,6 @@ export default function ExplorePage() {
                 </div>
               </div>
 
-              {/* Price Range */}
               <div>
                 <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Price Range</h3>
                 <div className="flex gap-2">
@@ -552,7 +527,6 @@ export default function ExplorePage() {
                 </div>
               </div>
 
-              {/* Preferences */}
               <div>
                 <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Preferences</h3>
                 <div className="space-y-3">
@@ -581,7 +555,6 @@ export default function ExplorePage() {
                 </div>
               </div>
 
-              {/* Clear Filters */}
               <button
                 onClick={clearAllFilters}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg text-sm text-muted hover:text-foreground hover:border-foreground/30 transition-colors"
@@ -592,9 +565,7 @@ export default function ExplorePage() {
             </div>
           </aside>
 
-          {/* Main Content */}
           <main className="flex-1 min-w-0">
-            {/* Results Header */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted">
                 Showing <span className="font-semibold text-foreground">{sortedRestaurants.length}</span> restaurants
@@ -619,7 +590,6 @@ export default function ExplorePage() {
               </div>
             </div>
 
-            {/* Trending Banner */}
             <div className="bg-accent rounded-xl p-6 mb-6 relative overflow-hidden">
               <div className="relative z-10">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -635,7 +605,6 @@ export default function ExplorePage() {
               </div>
             </div>
 
-            {/* Restaurant Grid */}
             <div className={`grid gap-4 mb-8 ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-1"}`}>
               {sortedRestaurants.map((restaurant) => (
                 <div
@@ -695,7 +664,6 @@ export default function ExplorePage() {
               ))}
             </div>
 
-            {/* Popular Dishes */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-foreground">Popular dishes 🔥</h2>
@@ -717,7 +685,14 @@ export default function ExplorePage() {
                       </p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="font-semibold text-primary">${dish.price.toFixed(2)}</span>
-                        <button className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors text-lg">
+                        <button 
+                          onClick={() => addItem({
+                            name: dish.name,
+                            price: dish.price,
+                            restaurant: dish.restaurant
+                          })}
+                          className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors text-lg"
+                        >
                           +
                         </button>
                       </div>
@@ -727,7 +702,6 @@ export default function ExplorePage() {
               </div>
             </div>
 
-            {/* Pagination */}
             <div className="flex items-center justify-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
