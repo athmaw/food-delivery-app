@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Search, MapPin, Star, Clock, Heart, ChevronLeft, ChevronRight, Grid3X3, List, X, ChevronDown } from "lucide-react";
+import { Search, MapPin, Star, Clock, Heart, Grid3X3, List, X, ChevronDown, SearchX } from "lucide-react";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
 import { useCart } from "@/hooks/use-cart";
@@ -17,27 +17,6 @@ const categories = [
   { id: "noodles", label: "Noodles", emoji: "🍜" },
   { id: "healthy", label: "Healthy", emoji: "🥗" },
   { id: "sushi", label: "Sushi", emoji: "🍣" },
-];
-
-const getCategoryCount = (categoryId: string) => {
-  if (categoryId === "all") {
-    return restaurants.length;
-  }
-
-  return restaurants.filter((restaurant) =>
-    restaurant.tags.some((tag) =>
-      tag.toLowerCase().includes(categoryId.toLowerCase())
-    )
-  ).length;
-};
-
-// Sort options
-const sortOptions = [
-  { id: "recommended", label: "Recommended" },
-  { id: "highest-rated", label: "Highest rated" },
-  { id: "fastest-delivery", label: "Fastest delivery" },
-  { id: "price-low-high", label: "Price: low to high" },
-  { id: "most-popular", label: "Most popular" },
 ];
 
 // Restaurants data
@@ -55,7 +34,6 @@ const restaurants = [
     badgeColor: "bg-primary",
     bgColor: "bg-yellow-100",
     emoji: "🍕",
-    favorite: true,
   },
   {
     id: 2,
@@ -154,7 +132,6 @@ const restaurants = [
     minOrder: 15,
     bgColor: "bg-amber-100",
     emoji: "☕",
-    favorite: true,
   },
   {
     id: 10,
@@ -184,7 +161,6 @@ const restaurants = [
   },
 ];
 
-// Popular dishes data
 const popularDishes = [
   { id: 1, name: "Pepperoni Pizza", restaurant: "Pizza-Bit", deliveryTime: "5 min", price: 12.99, bgColor: "bg-yellow-100", emoji: "🍕" },
   { id: 2, name: "Classic Smash Burger", restaurant: "McDonalds", deliveryTime: "5 min", price: 9.49, bgColor: "bg-amber-100", emoji: "🍔" },
@@ -193,23 +169,21 @@ const popularDishes = [
   { id: 5, name: "Salmon Sushi Set", restaurant: "Sushi World", deliveryTime: "15 min", price: 18.50, bgColor: "bg-pink-100", emoji: "🍣" },
 ];
 
+const sortOptions = [
+  { id: "recommended", label: "Recommended" },
+  { id: "highest-rated", label: "Highest rated" },
+  { id: "fastest-delivery", label: "Fastest delivery" },
+  { id: "price-low-high", label: "Price: low to high" },
+  { id: "most-popular", label: "Most popular" },
+];
+
 function ExploreUserDropdown({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
-
-  const getFirstName = () => {
-    if (user.displayName) {
-      return user.displayName.split(" ")[0];
-    }
-    if (user.email) {
-      return user.email.split("@")[0];
-    }
-    return "User";
-  };
-
   const handleLogout = async () => {
     await signOut(auth);
     setOpen(false);
   };
+  const getFirstName = () => user.displayName?.split(" ")[0] || user.email?.split("@")[0] || "User";
 
   return (
     <div className="relative">
@@ -220,23 +194,10 @@ function ExploreUserDropdown({ user }: { user: User }) {
         {getFirstName()}
         <ChevronDown className="w-4 h-4" />
       </button>
-
       {open && (
         <div className="absolute right-0 mt-2 w-40 bg-white border border-border rounded-lg shadow-lg overflow-hidden z-50">
-          <Link
-            href="/profile"
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 block"
-            onClick={() => setOpen(false)}
-          >
-            Profile
-          </Link>
-
-          <button
-            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
+          <Link href="/profile" className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 block">Profile</Link>
+          <button className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100" onClick={handleLogout}>Logout</button>
         </div>
       )}
     </div>
@@ -255,23 +216,17 @@ export default function ExplorePage() {
   const [newRestaurants, setNewRestaurants] = useState(false);
   const [promotionsOnly, setPromotionsOnly] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([1, 9]);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
     return () => unsubscribe();
   }, []);
 
   const toggleFavorite = (id: number) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]
-    );
+    setFavorites((prev) => prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]);
   };
 
   const clearAllFilters = () => {
@@ -287,110 +242,103 @@ export default function ExplorePage() {
     setSearchQuery("");
   };
 
-  const filteredRestaurants = restaurants.filter((restaurant) => {
-    if (activeCategory !== "all") {
-      const matchesCategory = restaurant.tags.some((tag) =>
-        tag.toLowerCase().includes(activeCategory.toLowerCase())
-      );
-      if (!matchesCategory) return false;
+  // IDEAL UX: Typing clears category
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    if (val.trim() !== "") {
+      setActiveCategory("all");
     }
+  };
 
-    if (minRating !== "all") {
-      const minRatingValue = parseFloat(minRating.replace("+", ""));
-      if (restaurant.rating < minRatingValue) return false;
-    }
+  // IDEAL UX: Selecting category clears search
+  const handleCategorySelect = (id: string) => {
+    setActiveCategory(id);
+    setSearchQuery("");
+  };
 
-    if (deliveryTime !== "any") {
-      const maxTime = parseInt(deliveryTime);
-      const restaurantTime = parseInt(restaurant.deliveryTime.split(" ")[0]);
-      if (restaurantTime > maxTime) return false;
-    }
+  const getCategoryCount = (categoryId: string) => {
+    return restaurants.filter((restaurant) => {
+      if (categoryId === "all") return true;
+      return restaurant.tags.some((tag) => tag.toLowerCase().includes(categoryId.toLowerCase()));
+    }).length;
+  };
 
-    if (priceRange !== "all") {
-      if (restaurant.priceRange !== priceRange) return false;
-    }
+  const filteredRestaurants = useMemo(() => {
+    return restaurants.filter((restaurant) => {
+      // Category
+      if (activeCategory !== "all") {
+        if (!restaurant.tags.some((tag) => tag.toLowerCase().includes(activeCategory.toLowerCase()))) return false;
+      }
+      // Search
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = restaurant.name.toLowerCase().includes(query);
+        const matchesTags = restaurant.tags.some(tag => tag.toLowerCase().includes(query));
+        if (!matchesName && !matchesTags) return false;
+      }
+      // Ratings/Time/Price
+      if (minRating !== "all") {
+        const val = parseFloat(minRating.replace("+", ""));
+        if (restaurant.rating < val) return false;
+      }
+      if (deliveryTime !== "any") {
+        const max = parseInt(deliveryTime);
+        if (parseInt(restaurant.deliveryTime) > max) return false;
+      }
+      if (priceRange !== "all" && restaurant.priceRange !== priceRange) return false;
+      if (freeDelivery && !restaurant.badge?.toLowerCase().includes("free")) return false;
+      if (newRestaurants && !restaurant.badge?.toLowerCase().includes("new")) return false;
+      if (promotionsOnly && !restaurant.badge) return false;
 
-    if (freeDelivery && !restaurant.badge?.toLowerCase().includes("free")) return false;
-    if (newRestaurants && !restaurant.badge?.toLowerCase().includes("new")) return false;
-    if (promotionsOnly && !restaurant.badge) return false;
+      return true;
+    });
+  }, [activeCategory, searchQuery, minRating, deliveryTime, priceRange, freeDelivery, newRestaurants, promotionsOnly]);
 
-    if (searchQuery.trim()) {
+  const filteredDishes = useMemo(() => {
+    return popularDishes.filter(dish => {
       const query = searchQuery.toLowerCase();
-      const matchesName = restaurant.name.toLowerCase().includes(query);
-      const matchesTags = restaurant.tags.some(tag => tag.toLowerCase().includes(query));
-      if (!matchesName && !matchesTags) return false;
-    }
+      const matchesSearch = dish.name.toLowerCase().includes(query) || dish.restaurant.toLowerCase().includes(query);
+      if (activeCategory === "all") return matchesSearch;
+      
+      const parent = restaurants.find(r => r.name === dish.restaurant);
+      return matchesSearch && parent?.tags.some(t => t.toLowerCase().includes(activeCategory.toLowerCase()));
+    });
+  }, [searchQuery, activeCategory]);
 
-    return true;
-  });
-
-  const sortedRestaurants = [...filteredRestaurants].sort((a, b) => {
+  const sortedRestaurants = useMemo(() => {
+    const result = [...filteredRestaurants];
     switch (activeSort) {
-      case "highest-rated":
-        return b.rating - a.rating;
-      
-      case "fastest-delivery":
-        const timeA = parseInt(a.deliveryTime.split(" ")[0]);
-        const timeB = parseInt(b.deliveryTime.split(" ")[0]);
-        return timeA - timeB;
-      
+      case "highest-rated": return result.sort((a, b) => b.rating - a.rating);
+      case "fastest-delivery": return result.sort((a, b) => parseInt(a.deliveryTime) - parseInt(b.deliveryTime));
       case "price-low-high":
-        const priceValue = (price: string) => {
-          if (price === "$") return 1;
-          if (price === "$$") return 2;
-          if (price === "$$$") return 3;
-          return 1;
-        };
-        return priceValue(a.priceRange) - priceValue(b.priceRange);
-      
-      case "most-popular":
-        return b.rating - a.rating;
-      
-      case "recommended":
-      default:
-        return 0;
+        const pMap: Record<string, number> = { "$": 1, "$$": 2, "$$$": 3 };
+        return result.sort((a, b) => pMap[a.priceRange] - pMap[b.priceRange]);
+      default: return result;
     }
-  });
+  }, [filteredRestaurants, activeSort]);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-white border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-xl font-bold text-primary">
-              FOOD APP
-            </Link>
-
+            <Link href="/" className="text-xl font-bold text-primary">FOOD APP</Link>
             <button className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-sm">
               <MapPin className="w-4 h-4 text-primary" />
               <span>123 Orchard Road, Singapore</span>
             </button>
-
             <nav className="hidden md:flex items-center gap-6">
-              <Link href="/" className="text-muted hover:text-foreground transition-colors">
-                Home
-              </Link>
-              <Link href="/explore" className="text-primary font-medium">
-                Explore Foods
-              </Link>
-              <Link href="/cart" className="text-muted hover:text-foreground transition-colors">
-                Cart
-              </Link>
+              <Link href="/" className="text-muted hover:text-foreground">Home</Link>
+              <Link href="/explore" className="text-primary font-medium">Explore Foods</Link>
+              <Link href="/cart" className="text-muted hover:text-foreground">Cart</Link>
             </nav>
-
             <div className="flex items-center gap-3">
               {!user ? (
                 <>
-                  <Link href="/signup" className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
-                    Sign Up
-                  </Link>
-                  <Link href="/login" className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-                    Log In
-                  </Link>
+                  <Link href="/signup" className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg">Sign Up</Link>
+                  <Link href="/login" className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg">Log In</Link>
                 </>
-              ) : (
-                <ExploreUserDropdown user={user} />
-              )}
+              ) : <ExploreUserDropdown user={user} />}
             </div>
           </div>
         </div>
@@ -409,328 +357,147 @@ export default function ExplorePage() {
               type="text"
               placeholder="Search restaurants, cuisines, or dishes..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-lg border border-border bg-white text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-lg border border-border focus:ring-2 focus:ring-primary/20 outline-none"
             />
           </div>
-          <button className="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors">
-            Search
-          </button>
+          <button className="px-6 py-3 bg-primary text-white font-medium rounded-lg">Search</button>
         </div>
 
         <div className="flex gap-8">
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-24 space-y-6">
               <div>
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Category</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide mb-3">Category</h3>
                 <div className="space-y-1">
-                  {categories.map((category) => (
+                  {categories.map((cat) => (
                     <button
-                      key={category.id}
-                      onClick={() => setActiveCategory(category.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
-                        activeCategory === category.id
-                          ? "bg-primary text-white"
-                          : "text-foreground hover:bg-gray-100"
-                      }`}
+                      key={cat.id}
+                      onClick={() => handleCategorySelect(cat.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${activeCategory === cat.id ? "bg-primary text-white" : "hover:bg-gray-100"}`}
                     >
-                      <span className="flex items-center gap-2">
-                        <span>{category.emoji}</span>
-                        <span>{category.label}</span>
-                      </span>
-                      <span className={activeCategory === category.id ? "text-white/80" : "text-primary"}>
-                        {getCategoryCount(category.id)}
-                      </span>
+                      <span className="flex items-center gap-2"><span>{cat.emoji}</span>{cat.label}</span>
+                      <span className={activeCategory === cat.id ? "text-white/80" : "text-primary"}>{getCategoryCount(cat.id)}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Sort By</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide mb-3">Sort By</h3>
                 <div className="space-y-1">
-                  {sortOptions.map((option) => (
-                    <button
-                      key={option.id}
-                      onClick={() => setActiveSort(option.id)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                        activeSort === option.id
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-foreground hover:bg-gray-100"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
+                  {sortOptions.map((opt) => (
+                    <button key={opt.id} onClick={() => setActiveSort(opt.id)} className={`w-full text-left px-3 py-2 rounded-lg text-sm ${activeSort === opt.id ? "bg-primary/10 text-primary font-medium" : "hover:bg-gray-100"}`}>{opt.label}</button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Min. Rating</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide mb-3">Min. Rating</h3>
                 <div className="flex flex-wrap gap-2">
-                  {["all", "4.5+", "4.7+", "4.9+"].map((rating) => (
-                    <button
-                      key={rating}
-                      onClick={() => setMinRating(rating)}
-                      className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                        minRating === rating
-                          ? "bg-primary text-white border-primary"
-                          : "border-border text-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      {rating === "all" ? "All" : `★ ${rating}`}
-                    </button>
+                  {["all", "4.5+", "4.7+", "4.9+"].map((r) => (
+                    <button key={r} onClick={() => setMinRating(r)} className={`px-3 py-1.5 rounded-lg text-sm border ${minRating === r ? "bg-primary text-white border-primary" : "border-border hover:border-primary/50"}`}>{r === "all" ? "All" : `★ ${r}`}</button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Delivery Time</h3>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { id: "any", label: "Any" },
-                    { id: "10", label: "≤ 10 min" },
-                    { id: "15", label: "≤ 15 min" },
-                    { id: "20", label: "≤ 20 min" },
-                  ].map((time) => (
-                    <button
-                      key={time.id}
-                      onClick={() => setDeliveryTime(time.id)}
-                      className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                        deliveryTime === time.id
-                          ? "bg-primary text-white border-primary"
-                          : "border-border text-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      {time.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Price Range</h3>
-                <div className="flex gap-2">
-                  {["all", "$", "$$", "$$$"].map((price) => (
-                    <button
-                      key={price}
-                      onClick={() => setPriceRange(price)}
-                      className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                        priceRange === price
-                          ? "bg-primary text-white border-primary"
-                          : "border-border text-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      {price === "all" ? "All" : price}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Preferences</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide mb-3">Preferences</h3>
                 <div className="space-y-3">
                   {[
-                    { id: "openNow", label: "Open now", value: openNow, setter: setOpenNow },
                     { id: "freeDelivery", label: "Free delivery", value: freeDelivery, setter: setFreeDelivery },
                     { id: "newRestaurants", label: "New restaurants", value: newRestaurants, setter: setNewRestaurants },
                     { id: "promotionsOnly", label: "Promotions only", value: promotionsOnly, setter: setPromotionsOnly },
                   ].map((pref) => (
                     <label key={pref.id} className="flex items-center justify-between cursor-pointer">
-                      <span className="text-sm text-foreground">{pref.label}</span>
-                      <button
-                        onClick={() => pref.setter(!pref.value)}
-                        className={`w-10 h-6 rounded-full transition-colors ${
-                          pref.value ? "bg-primary" : "bg-gray-300"
-                        }`}
-                      >
-                        <span
-                          className={`block w-4 h-4 bg-white rounded-full shadow transform transition-transform ${
-                            pref.value ? "translate-x-5" : "translate-x-1"
-                          }`}
-                        />
+                      <span className="text-sm">{pref.label}</span>
+                      <button onClick={() => pref.setter(!pref.value)} className={`w-10 h-6 rounded-full transition-colors ${pref.value ? "bg-primary" : "bg-gray-300"}`}>
+                        <span className={`block w-4 h-4 bg-white rounded-full shadow transform transition-transform ${pref.value ? "translate-x-5" : "translate-x-1"}`} />
                       </button>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <button
-                onClick={clearAllFilters}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg text-sm text-muted hover:text-foreground hover:border-foreground/30 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Clear all filters
-              </button>
+              <button onClick={clearAllFilters} className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg text-sm text-muted hover:text-foreground hover:border-foreground/30"><X className="w-4 h-4" /> Clear all filters</button>
             </div>
           </aside>
 
           <main className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-muted">
-                Showing <span className="font-semibold text-foreground">{sortedRestaurants.length}</span> restaurants
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg border transition-colors ${
-                    viewMode === "grid" ? "bg-primary text-white border-primary" : "border-border text-muted hover:text-foreground"
-                  }`}
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg border transition-colors ${
-                    viewMode === "list" ? "bg-primary text-white border-primary" : "border-border text-muted hover:text-foreground"
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                </button>
+            {sortedRestaurants.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-border">
+                <div className="bg-gray-100 p-4 rounded-full mb-4"><SearchX className="w-10 h-10 text-muted" /></div>
+                <h3 className="text-xl font-semibold text-foreground">No results found</h3>
+                <p className="text-muted mt-2 text-center max-w-xs">We couldn't find any restaurants matching your current criteria.</p>
+                <button onClick={clearAllFilters} className="mt-6 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">Clear all filters</button>
               </div>
-            </div>
-
-            <div className="bg-accent rounded-xl p-6 mb-6 relative overflow-hidden">
-              <div className="relative z-10">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  🔥 Trending this week
-                </h2>
-                <p className="text-gray-300 text-sm mt-1">These spots are getting all the orders right now.</p>
-                <button className="mt-4 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors">
-                  View all trending →
-                </button>
-              </div>
-              <div className="absolute right-4 bottom-0 text-6xl opacity-50">
-                🍕🍔🥗
-              </div>
-            </div>
-
-            <div className={`grid gap-4 mb-8 ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-1"}`}>
-              {sortedRestaurants.map((restaurant) => (
-                <div
-                  key={restaurant.id}
-                  className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-md hover:border-primary/30 transition-all cursor-pointer"
-                >
-                  <div className={`relative ${restaurant.bgColor} p-4 flex items-center justify-center h-32`}>
-                    {restaurant.badge && (
-                      <span className={`absolute top-2 left-2 ${restaurant.badgeColor} text-white text-xs font-medium px-2 py-1 rounded-md`}>
-                        {restaurant.badge}
-                      </span>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(restaurant.id);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full hover:bg-white transition-colors"
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${
-                          favorites.includes(restaurant.id) ? "fill-primary text-primary" : "text-gray-400"
-                        }`}
-                      />
-                    </button>
-                    <span className="text-5xl">{restaurant.emoji}</span>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="font-semibold text-foreground truncate">{restaurant.name}</h3>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {restaurant.tags.slice(0, 3).map((tag) => (
-                        <span key={tag} className="text-xs text-muted bg-gray-100 px-2 py-0.5 rounded">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-2 mt-2 text-xs text-muted">
-                      <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                        {restaurant.rating}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {restaurant.deliveryTime}
-                      </span>
-                      <span>{restaurant.priceRange}</span>
-                      <span>{restaurant.distance}</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                      <span className="text-xs text-muted">Min. order ${restaurant.minOrder}</span>
-                      <button className="text-xs font-medium text-primary hover:underline">
-                        Open now
-                      </button>
-                    </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-muted">Showing <span className="font-semibold text-foreground">{sortedRestaurants.length}</span> restaurants</p>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setViewMode("grid")} className={`p-2 rounded-lg border ${viewMode === "grid" ? "bg-primary text-white border-primary" : "border-border text-muted"}`}><Grid3X3 className="w-4 h-4" /></button>
+                    <button onClick={() => setViewMode("list")} className={`p-2 rounded-lg border ${viewMode === "list" ? "bg-primary text-white border-primary" : "border-border text-muted"}`}><List className="w-4 h-4" /></button>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-foreground">Popular dishes 🔥</h2>
-                <button className="text-sm text-primary hover:underline">See all →</button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {popularDishes.map((dish) => (
-                  <div
-                    key={dish.id}
-                    className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-md transition-all cursor-pointer"
-                  >
-                    <div className={`${dish.bgColor} p-4 flex items-center justify-center h-28`}>
-                      <span className="text-4xl">{dish.emoji}</span>
+                {!searchQuery && activeCategory === "all" && (
+                  <div className="bg-accent rounded-xl p-6 mb-6 relative overflow-hidden">
+                    <div className="relative z-10">
+                      <h2 className="text-xl font-bold text-white flex items-center gap-2">🔥 Trending this week</h2>
+                      <p className="text-gray-300 text-sm mt-1">These spots are getting all the orders right now.</p>
                     </div>
-                    <div className="p-3">
-                      <h3 className="font-medium text-foreground text-sm truncate">{dish.name}</h3>
-                      <p className="text-xs text-muted truncate">
-                        {dish.restaurant} · {dish.deliveryTime}
-                      </p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="font-semibold text-primary">${dish.price.toFixed(2)}</span>
-                        <button 
-                          onClick={() => addItem({
-                            name: dish.name,
-                            price: dish.price,
-                            restaurant: dish.restaurant
-                          })}
-                          className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors text-lg"
-                        >
-                          +
+                    <div className="absolute right-4 bottom-0 text-6xl opacity-50">🍕🍔🥗</div>
+                  </div>
+                )}
+
+                <div className={`grid gap-4 mb-8 ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-1"}`}>
+                  {sortedRestaurants.map((restaurant) => (
+                    <div key={restaurant.id} className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-md transition-all cursor-pointer">
+                      <div className={`relative ${restaurant.bgColor} p-4 flex items-center justify-center h-32`}>
+                        {restaurant.badge && <span className={`absolute top-2 left-2 ${restaurant.badgeColor} text-white text-xs font-medium px-2 py-1 rounded-md`}>{restaurant.badge}</span>}
+                        <button onClick={(e) => { e.stopPropagation(); toggleFavorite(restaurant.id); }} className="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full">
+                          <Heart className={`w-4 h-4 ${favorites.includes(restaurant.id) ? "fill-primary text-primary" : "text-gray-400"}`} />
                         </button>
+                        <span className="text-5xl">{restaurant.emoji}</span>
+                      </div>
+                      <div className="p-3">
+                        <h3 className="font-semibold text-foreground truncate">{restaurant.name}</h3>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {restaurant.tags.slice(0, 3).map((tag) => <span key={tag} className="text-xs text-muted bg-gray-100 px-2 py-0.5 rounded">{tag}</span>)}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted">
+                          <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-500 fill-current" />{restaurant.rating}</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{restaurant.deliveryTime}</span>
+                          <span>{restaurant.priceRange}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  ))}
+                </div>
 
-            <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-border text-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              {[1, 2, 3, 4].map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === page
-                      ? "bg-primary text-white"
-                      : "border border-border text-foreground hover:bg-gray-100"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(4, p + 1))}
-                disabled={currentPage === 4}
-                className="p-2 rounded-lg border border-border text-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+                {filteredDishes.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-bold text-foreground mb-4">Popular dishes 🔥</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {filteredDishes.map((dish) => (
+                        <div key={dish.id} className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-md transition-all cursor-pointer">
+                          <div className={`${dish.bgColor} p-4 flex items-center justify-center h-28`}><span className="text-4xl">{dish.emoji}</span></div>
+                          <div className="p-3">
+                            <h3 className="font-medium text-sm truncate">{dish.name}</h3>
+                            <p className="text-xs text-muted truncate">{dish.restaurant}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="font-semibold text-primary">${dish.price.toFixed(2)}</span>
+                              <button onClick={() => addItem({ name: dish.name, price: dish.price, restaurant: dish.restaurant })} className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90">+</button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </main>
         </div>
       </div>

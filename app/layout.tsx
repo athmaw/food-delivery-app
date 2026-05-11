@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FoodMe - Food Delivery App",
+  title: "FeedMe - Food Delivery App",
   description: "Your favorite food, delivered fresh and fast. Order from the best restaurants near you.",
 };
 

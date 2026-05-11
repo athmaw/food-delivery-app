@@ -74,7 +74,7 @@ export default function Signup() {
         <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
           <div className="mb-8 text-center">
             <Link href="/" className="inline-block">
-              <span className="text-3xl font-bold text-primary">FoodMe</span>
+              <span className="text-3xl font-bold text-primary">FeedMe</span>
             </Link>
             <h1 className="mt-4 text-2xl font-semibold text-foreground">
               Create an account
