@@ -199,8 +199,16 @@ export default function RecentOrders() {
                           </div>
                         </div>
 
-                        <span className="px-5 py-2 rounded-full bg-[#92E0AB] text-[#2A1E21] font-semibold text-sm">
-                          {order.status === "collected" ? "Delivered" : order.status}
+                        <span
+                          className={`text-xs font-bold px-3 py-1 rounded-full capitalize ${
+                            order.status === "collected"
+                              ? "bg-green-100 text-green-700"
+                              : order.status === "cancelled"
+                              ? "bg-red-200 text-red-700"
+                              : "bg-[#F7E4EA] text-[#2A1E21]"   // default for active statuses
+                          }`}
+                        >
+                          {order.status === "out_for_delivery" ? "Out for delivery" : order.status}
                         </span>
                       </div>
 
@@ -221,7 +229,7 @@ export default function RecentOrders() {
                         <p className="text-[18px] font-semibold text-[#8E7B80]">
                           Total:{" "}
                           <span className="text-[#FF4F87] font-bold">
-                            ₱{(order.grandTotal || order.total).toFixed(2)}
+                            ${(order.grandTotal || order.total).toFixed(2)}
                           </span>
                         </p>
 

@@ -28,7 +28,7 @@ export default function CheckoutModal({
 
   if (!isOpen) return null;
 
-  const deliveryFee = total > 0 ? 2.5 : 0;
+  const deliveryFee = total > 0 ? 1.99 : 0;
   const grandTotal = total + deliveryFee;
 
   const handleCheckout = async () => {
