@@ -62,7 +62,7 @@ export default function CheckoutModal({
         itemsTotal: total,
         deliveryFee,
         grandTotal,
-        status: "pending",
+        status: "preparing",
         createdAt: serverTimestamp(),
       };
 

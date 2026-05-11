@@ -45,7 +45,10 @@ export function Navbar() {
             <Link href="/cart" className="text-muted hover:text-primary transition-colors">
               Cart
             </Link>
-          </nav>
+            <Link href="/orders" className="text-muted hover:text-primary transition-colors">
+              Orders
+            </Link>
+          </nav> 
 
           {/* Auth Section */}
           <div className="relative flex items-center gap-3">
