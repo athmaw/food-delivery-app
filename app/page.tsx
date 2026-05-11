@@ -16,20 +16,34 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    setSearchQuery(""); 
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-slate-900">
       <Navbar />
       <main>
-        <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
+        <HeroSection 
+          searchQuery={searchQuery} 
+          setSearchQuery={setSearchQuery}
+        />
+
         <CategoriesSection
           activeCategory={activeCategory}
-          setActiveCategory={setActiveCategory} 
+          setActiveCategory={handleCategoryChange} 
         />
+
         <RestaurantsSection 
           activeCategory={activeCategory}
           searchQuery={searchQuery}
         />
-        <TopDishesSection searchQuery={searchQuery}/>
+
+        <TopDishesSection 
+          searchQuery={searchQuery}
+        />
+
         <HowItWorksSection />
         <PromoSection />
         <TestimonialsSection />

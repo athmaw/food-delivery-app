@@ -30,7 +30,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="text-2xl font-bold text-primary">
-              FoodMe
+              FeedMe
             </Link>
             <p className="mt-3 text-sm text-gray-400 max-w-xs">
               Your food, fast and fresh. We connect you to the best restaurants in your area.
@@ -82,7 +82,7 @@ export function Footer() {
 
         {/* Bottom */}
         <div className="mt-10 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
-          <p>&copy; {new Date().getFullYear()} FoodMe. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} FeedMe. All rights reserved.</p>
         </div>
       </div>
     </footer>
