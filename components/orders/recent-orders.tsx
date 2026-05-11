@@ -229,7 +229,7 @@ export default function RecentOrders() {
                         <p className="text-[18px] font-semibold text-[#8E7B80]">
                           Total:{" "}
                           <span className="text-[#FF4F87] font-bold">
-                            ${(order.grandTotal || order.total).toFixed(2)}
+                            ₱{(order.grandTotal || order.total).toFixed(2)}
                           </span>
                         </p>
 

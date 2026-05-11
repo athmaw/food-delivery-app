@@ -163,7 +163,7 @@ export default function TrackOrder({ orderId }: { orderId: string }) {
             <div className="flex justify-between border-t border-[#F4E8EB] pt-6">
               <span className="text-2xl font-bold text-[#2B1F22]">Total</span>
               <span className="text-3xl font-black text-[#2B1F22]">
-                ${(order.grandTotal || order.total).toFixed(2)}
+                ₱{(order.grandTotal || order.total).toFixed(2)}
               </span>
             </div>
           </div>

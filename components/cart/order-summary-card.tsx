@@ -101,7 +101,7 @@ export default function OrderSummaryCard() {
             <span className="text-[10px] text-primary font-bold">
               {hasEarnedFreeDelivery
                 ? "Free delivery earned! 🎉"
-                : `$${amountAway.toFixed(2)} away!`}
+                : `₱${amountAway.toFixed(2)} away!`}
             </span>
           </div>
 
@@ -181,7 +181,7 @@ export default function OrderSummaryCard() {
         <div className="flex flex-col gap-3 border-b border-gray-50 pb-4 mb-4">
           <div className="flex justify-between text-sm">
             <span className="text-[#9ea3ae]">Subtotal</span>
-            <span className="font-bold">${subtotal.toFixed(2)}</span>
+            <span className="font-bold">₱{subtotal.toFixed(2)}</span>
           </div>
 
           {promo && (
@@ -190,7 +190,7 @@ export default function OrderSummaryCard() {
                 Discount ({promo.code})
               </span>
               <span className="text-[#00c566] font-bold">
-                -${discountAmount.toFixed(2)}
+                -₱{discountAmount.toFixed(2)}
               </span>
             </div>
           )}
@@ -198,13 +198,13 @@ export default function OrderSummaryCard() {
           <div className="flex justify-between text-sm">
             <span className="text-[#9ea3ae]">Delivery fee</span>
             <span className="font-bold">
-              {hasEarnedFreeDelivery ? "FREE" : `$${deliveryFee.toFixed(2)}`}
+              {hasEarnedFreeDelivery ? "FREE" : `₱${deliveryFee.toFixed(2)}`}
             </span>
           </div>
 
           <div className="flex justify-between text-sm">
             <span className="text-[#9ea3ae]">Service fee</span>
-            <span className="font-bold">${serviceFee.toFixed(2)}</span>
+            <span className="font-bold">₱{serviceFee.toFixed(2)}</span>
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export default function OrderSummaryCard() {
         <div className="flex justify-between items-center mb-6">
           <span className="text-xl font-bold">Total</span>
           <span className="text-2xl font-black text-primary">
-            ${total.toFixed(2)}
+            ₱{total.toFixed(2)}
           </span>
         </div>
 

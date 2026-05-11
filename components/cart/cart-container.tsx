@@ -11,7 +11,7 @@ const ExtraItemWidget = ({ icon, name, price }: { icon: string; name: string; pr
   const handleAddExtra = () => {
     addItem({
       name,
-      price: parseFloat(price.replace("$", "")),
+      price: parseFloat(price.replace("₱", "")),
       restaurant: "Extras",
     });
   };
@@ -32,6 +32,14 @@ const ExtraItemWidget = ({ icon, name, price }: { icon: string; name: string; pr
 };
 
 export default function CartContainer() {
+  const { items } = useCart();
+
+  // Calculate total items (sum of quantities)
+  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+
+  // Calculate unique restaurants
+  const uniqueRestaurants = new Set(items.map(item => item.restaurant || "Restaurant")).size;
+
   return (
     <div className="flex-1 bg-[#FAF9F6] min-h-screen">
       <div className="max-w-6xl mx-auto w-full py-12 px-6">
@@ -40,8 +48,9 @@ export default function CartContainer() {
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
             Your Cart <span className="text-3xl">🛒</span>
           </h1>
+          {/* Dynamic count logic added here */}
           <p className="text-gray-400 text-lg mt-2">
-            2 items from 2 restaurants
+            {totalItems} {totalItems === 1 ? 'item' : 'items'} from {uniqueRestaurants} {uniqueRestaurants === 1 ? 'restaurant' : 'restaurants'}
           </p>
         </div>
 
@@ -54,11 +63,11 @@ export default function CartContainer() {
                 Add something extra?
               </h3>
               <div className="flex flex-row overflow-x-auto pb-4 gap-4 no-scrollbar">
-                <ExtraItemWidget icon="🥤" name="Coke Can" price="$1.50" />
-                <ExtraItemWidget icon="🍟" name="Large Fries" price="$3.00" />
-                <ExtraItemWidget icon="🍰" name="Choc Lava" price="$6.00" />
-                <ExtraItemWidget icon="🧋" name="Bubble Tea" price="$4.50" />
-                <ExtraItemWidget icon="🍦" name="Soft Serve" price="$2.50" />
+                <ExtraItemWidget icon="🥤" name="Coke Can" price="₱1.50" />
+                <ExtraItemWidget icon="🍟" name="Large Fries" price="₱3.00" />
+                <ExtraItemWidget icon="🍰" name="Choc Lava" price="₱6.00" />
+                <ExtraItemWidget icon="🧋" name="Bubble Tea" price="₱4.50" />
+                <ExtraItemWidget icon="🍦" name="Soft Serve" price="₱2.50" />
               </div>
             </div>
           </div>

@@ -73,7 +73,7 @@ export default function OrderItemsCard() {
                 <div className="flex-1 ml-6">
                   <h4 className="font-bold text-[#1f1a17] text-lg">{item.name}</h4>
                   <p className="text-[#9ea3ae] text-sm">{item.restaurant}</p>
-                  <p className="text-primary font-bold mt-2">${item.price.toFixed(2)}</p>
+                  <p className="text-primary font-bold mt-2">₱{item.price.toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-4">
                    <div className="flex items-center border rounded-full px-2 py-1 bg-white">

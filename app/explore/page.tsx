@@ -28,7 +28,7 @@ const restaurants = [
     tags: ["Pizza", "Italian", "Fast food"],
     rating: 4.9,
     deliveryTime: "5 min",
-    priceRange: "$",
+    priceRange: "₱",
     distance: "1.2 km",
     minOrder: 8,
     badge: "30% OFF",
@@ -42,7 +42,7 @@ const restaurants = [
     tags: ["Burgers", "Fast food", "American"],
     rating: 4.8,
     deliveryTime: "5 min",
-    priceRange: "$",
+    priceRange: "₱",
     distance: "0.8 km",
     minOrder: 5,
     bgColor: "bg-amber-100",
@@ -54,7 +54,7 @@ const restaurants = [
     tags: ["Coffee", "Drinks", "Snacks"],
     rating: 4.7,
     deliveryTime: "10 min",
-    priceRange: "$$",
+    priceRange: "₱₱",
     distance: "2.1 km",
     minOrder: 6,
     bgColor: "bg-green-100",
@@ -66,7 +66,7 @@ const restaurants = [
     tags: ["Noodles", "Asian", "Ramen"],
     rating: 4.6,
     deliveryTime: "8 min",
-    priceRange: "$",
+    priceRange: "₱",
     distance: "1.5 km",
     minOrder: 10,
     bgColor: "bg-orange-100",
@@ -78,7 +78,7 @@ const restaurants = [
     tags: ["Healthy", "Salads", "Vegan"],
     rating: 4.5,
     deliveryTime: "12 min",
-    priceRange: "$$",
+    priceRange: "₱₱",
     distance: "2.4 km",
     minOrder: 12,
     bgColor: "bg-lime-100",
@@ -90,7 +90,7 @@ const restaurants = [
     tags: ["Sushi", "Japanese", "Seafood"],
     rating: 4.8,
     deliveryTime: "15 min",
-    priceRange: "$$$",
+    priceRange: "₱₱₱",
     distance: "3.0 km",
     minOrder: 20,
     bgColor: "bg-pink-100",
@@ -102,7 +102,7 @@ const restaurants = [
     tags: ["Desserts", "Cakes", "Waffles"],
     rating: 4.7,
     deliveryTime: "15 min",
-    priceRange: "$$",
+    priceRange: "₱₱",
     distance: "1.9 km",
     minOrder: 8,
     badge: "New!",
@@ -116,7 +116,7 @@ const restaurants = [
     tags: ["Pizza", "Pasta", "Italian"],
     rating: 4.5,
     deliveryTime: "18 min",
-    priceRange: "$$",
+    priceRange: "₱₱",
     distance: "2.8 km",
     minOrder: 10,
     bgColor: "bg-orange-100",
@@ -128,7 +128,7 @@ const restaurants = [
     tags: ["Coffee", "Specialty", "Brunch"],
     rating: 4.9,
     deliveryTime: "8 min",
-    priceRange: "$$$",
+    priceRange: "₱₱₱",
     distance: "1.1 km",
     minOrder: 15,
     bgColor: "bg-amber-100",
@@ -140,7 +140,7 @@ const restaurants = [
     tags: ["Healthy", "Poke", "Hawaiian"],
     rating: 4.7,
     deliveryTime: "14 min",
-    priceRange: "$$",
+    priceRange: "₱₱",
     distance: "2.2 km",
     minOrder: 12,
     badge: "15% Off",
@@ -154,7 +154,7 @@ const restaurants = [
     tags: ["Japanese", "Bento", "Sushi"],
     rating: 4.6,
     deliveryTime: "20 min",
-    priceRange: "$$",
+    priceRange: "₱₱",
     distance: "3.2 km",
     minOrder: 15,
     bgColor: "bg-red-100",
@@ -312,7 +312,7 @@ export default function ExplorePage() {
       case "highest-rated": return result.sort((a, b) => b.rating - a.rating);
       case "fastest-delivery": return result.sort((a, b) => parseInt(a.deliveryTime) - parseInt(b.deliveryTime));
       case "price-low-high":
-        const pMap: Record<string, number> = { "$": 1, "$$": 2, "$$$": 3 };
+        const pMap: Record<string, number> = { "₱": 1, "₱₱": 2, "₱₱₱": 3 };
         return result.sort((a, b) => pMap[a.priceRange] - pMap[b.priceRange]);
       default: return result;
     }
@@ -490,7 +490,7 @@ export default function ExplorePage() {
                             <h3 className="font-medium text-sm truncate">{dish.name}</h3>
                             <p className="text-xs text-muted truncate">{dish.restaurant}</p>
                             <div className="flex items-center justify-between mt-2">
-                              <span className="font-semibold text-primary">${dish.price.toFixed(2)}</span>
+                              <span className="font-semibold text-primary">₱{dish.price.toFixed(2)}</span>
                               <button onClick={() => addItem({ name: dish.name, price: dish.price, restaurant: dish.restaurant })} className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90">+</button>
                             </div>
                           </div>

@@ -28,11 +28,11 @@ export function Navbar() {
           </Link>
 
           {/* Location Selector */}
-          <button className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors">
+          {/* <button className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors">
             <MapPin className="w-4 h-4" />
             <span>Select your address</span>
             <ChevronDown className="w-4 h-4" />
-          </button>
+          </button> */}
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-8">

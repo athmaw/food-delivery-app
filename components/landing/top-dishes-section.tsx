@@ -74,7 +74,7 @@ export function TopDishesSection({ searchQuery }: Props) {
 
             <div className="mt-2">
               <span className="text-primary font-medium">
-                ${dish.price}
+                ₱{dish.price}
               </span>
             </div>
 

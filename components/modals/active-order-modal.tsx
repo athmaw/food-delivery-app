@@ -118,7 +118,7 @@ export default function OrderDetailsModal({
                 {item.quantity}x {item.name}
               </span>
               <span className="text-sm font-bold text-gray-700">
-                ${(item.price * item.quantity).toFixed(2)}
+                ₱{(item.price * item.quantity).toFixed(2)}
               </span>
             </div>
           ))}
@@ -128,17 +128,17 @@ export default function OrderDetailsModal({
         <div className="border-t border-gray-100 pt-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Subtotal</span>
-            <span className="font-medium">${subtotal.toFixed(2)}</span>
+            <span className="font-medium">₱{subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Delivery fee</span>
             <span className="font-medium">
-              {deliveryFee === 0 ? "Free" : `$${deliveryFee.toFixed(2)}`}
+              {deliveryFee === 0 ? "Free" : `₱${deliveryFee.toFixed(2)}`}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Service fee</span>
-            <span className="font-medium">${serviceFee.toFixed(2)}</span>
+            <span className="font-medium">₱{serviceFee.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-medium text-base border-t pt-2">
             <span>Payment</span>
@@ -146,7 +146,7 @@ export default function OrderDetailsModal({
           </div>
           <div className="flex justify-between font-bold text-base">
             <span>Total</span>
-            <span className="text-primary">${finalTotal.toFixed(2)}</span>
+            <span className="text-primary">₱{finalTotal.toFixed(2)}</span>
           </div>
         </div>
 

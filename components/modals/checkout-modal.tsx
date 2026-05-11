@@ -92,7 +92,7 @@ export default function CheckoutModal({
             {items.map((item) => (
               <div key={item.id} className="flex justify-between text-xs text-gray-600">
                 <span className="truncate mr-2">{item.name} <span className="text-gray-400 font-medium">x{item.quantity}</span></span>
-                <span className="font-semibold text-gray-800 flex-shrink-0">${(item.price * item.quantity).toFixed(2)}</span>
+                <span className="font-semibold text-gray-800 flex-shrink-0">₱{(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}
           </div>
@@ -153,7 +153,7 @@ export default function CheckoutModal({
           className="w-full bg-primary hover:bg-primary/90 text-white py-3.5 rounded-2xl font-bold flex justify-between items-center px-6 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-primary/20"
         >
           <span className="text-sm">{loading ? "Processing..." : "Place Order"}</span>
-          <span className="text-sm opacity-90">${grandTotal.toFixed(2)}</span>
+          <span className="text-sm opacity-90">₱{grandTotal.toFixed(2)}</span>
         </button>
       </div>
 
