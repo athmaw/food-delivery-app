@@ -6,6 +6,7 @@ import { Search, MapPin, Star, Clock, Heart, Grid3X3, List, X, ChevronDown, Sear
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
 import { useCart } from "@/hooks/use-cart";
+import { Navbar } from "@/components/landing/navbar"
 
 // Categories data
 const categories = [
@@ -319,7 +320,7 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-white border-b border-border">
+      {/* <header className="sticky top-0 z-50 bg-white border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="text-xl font-bold text-primary">FOOD APP</Link>
@@ -342,7 +343,9 @@ export default function ExplorePage() {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
+
+      <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
