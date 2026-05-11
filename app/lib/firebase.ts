@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBl5KnceoQOftbo7iYB3DhHbvKjctJibis",
-  authDomain: "food-delivery-app-acff2.firebaseapp.com",
-  projectId: "food-delivery-app-acff2",
-  storageBucket: "food-delivery-app-acff2.firebasestorage.app",
-  messagingSenderId: "877648006121",
-  appId: "1:877648006121:web:4a97cf3d85c66ee520d978",
-  measurementId: "G-PQ4FGXX5KY"
+  apiKey: "NEXT_PUBLIC_FIREBASE_API_KEY",
+  authDomain: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  projectId: "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  storageBucket: "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "NEXT_PUBLIC_FIREBASE_APP_ID",
+  measurementId: "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"
 };
 
 const app = initializeApp(firebaseConfig);

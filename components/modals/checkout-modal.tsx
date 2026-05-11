@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { db, auth } from "@/app/lib/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useCart } from "@/hooks/use-cart";
+import { CheckCircle2, AlertCircle, X, Phone, MapPin } from "lucide-react";
 
 export default function CheckoutModal({
   isOpen,
@@ -18,14 +19,19 @@ export default function CheckoutModal({
 
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "cash">("card");
-
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
-
   const [errorPopup, setErrorPopup] = useState("");
   const [successPopup, setSuccessPopup] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
-  if (!isOpen) return null;
+  // Updated validation for PH context (09... or +63...)
+  const isPhoneValid = useMemo(() => {
+    if (!phone) return true;
+    // Regex for: 09 followed by 9 digits OR +63 followed by 10 digits
+    const phRegex = /^(09\d{9}|\+63\d{10})$/;
+    return phRegex.test(phone.replace(/\s/g, ''));
+  }, [phone]);
 
   // FIX: Remove the double-addition of the delivery fee.
   // The 'total' prop passed in is already the final grand total.
@@ -34,25 +40,22 @@ export default function CheckoutModal({
   const handleCheckout = async () => {
     try {
       setLoading(true);
-
       const user = auth.currentUser;
 
       if (!user) {
-        setErrorPopup("You must be logged in.");
+        setErrorPopup("Please log in to continue.");
         return;
       }
-
       if (!address.trim() || !phone.trim()) {
-        setErrorPopup("Please enter your address and phone number.");
+        setErrorPopup("Address and phone are required.");
+        return;
+      }
+      if (!isPhoneValid) {
+        setErrorPopup("Please enter a valid PH phone number (e.g., 09123456789).");
         return;
       }
 
-      if (items.length === 0) {
-        setErrorPopup("Your cart is empty.");
-        return;
-      }
-
-      const orderData = {
+      await addDoc(collection(db, "orders"), {
         userId: user.uid,
         items,
         address,
@@ -63,19 +66,18 @@ export default function CheckoutModal({
         promoCode: promo ? promo.code : null, // Save the code so it can't be reused
         status: "preparing",
         createdAt: serverTimestamp(),
-      };
-
-      await addDoc(collection(db, "orders"), orderData);
+      });
 
       clearCart();
       setSuccessPopup(true);
     } catch (err) {
-      console.error(err);
-      setErrorPopup("Something went wrong. Try again.");
+      setErrorPopup("Checkout failed. Try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -178,8 +180,11 @@ export default function CheckoutModal({
             </p>
             <button
               onClick={() => {
-                setSuccessPopup(false);
-                onClose();
+                setErrorPopup("");
+                if (successPopup) {
+                  setSuccessPopup(false);
+                  onClose();
+                }
               }}
               className="mt-6 w-full bg-black text-white font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition-opacity"
             >

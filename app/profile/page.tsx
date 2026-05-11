@@ -77,7 +77,7 @@ export default function ProfilePage() {
     { title: "My Profile", description: "Edit personal info", badge: null },
     { title: "My Orders", description: "Track & reorder", badge: 2 },
     { title: "Saved Addresses", description: "Manage your addresses", badge: null },
-    { title: "Settings", description: "Notifications, payments", badge: null },
+    // { title: "Settings", description: "Notifications, payments", badge: null },
   ];
 
   const openAddressEditor = () => {

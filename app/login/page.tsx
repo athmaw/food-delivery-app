@@ -55,7 +55,7 @@ export default function Login() {
         <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
           <div className="mb-8 text-center">
             <Link href="/" className="inline-block">
-              <span className="text-3xl font-bold text-primary">FoodMe</span>
+              <span className="text-3xl font-bold text-primary">FeedMe</span>
             </Link>
             <h1 className="mt-4 text-2xl font-semibold text-foreground">
               Welcome back
@@ -88,9 +88,14 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-foreground">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-medium text-foreground">
+                  Password
+                </label>
+                <Link href="/forgotpass" title="reset-password" className="text-xs text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"
